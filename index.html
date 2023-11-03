@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ROI Calculator</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Lato");
+
+      body {
+        font-family: "Lato", sans-serif;
+      }
+
+      .card {
+        width: 600px;
+        padding: 20px;
+        border: 0.5px solid #efefef;
+        border-radius: 5px;
+        margin: 0 auto;
+        text-align: center;
+        filter: drop-shadow(2px 4px 20px #e9e9e9);
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+        background: #e4e4e4;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: 0.2s;
+        transition: opacity 0.2s;
+        -webkit-outline: none;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #04aa6d;
+        cursor: pointer;
+      }
+
+      .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #04aa6d;
+        cursor: pointer;
+      }
+
+      .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+      }
+
+      .table td {
+        vertical-align: middle;
+        text-align: center;
+        font-size: 15px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card mt-5">
+      <h2 class="text-center mb-5 mt-3"><b>ROI Calculator</b></h2>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="budget">What's your monthly budget?</label>
+            <input
+              type="range"
+              min="200"
+              max="10000"
+              value="1000"
+              step="100"
+              id="budget"
+              class="slider form-control mt-3 mb-3"
+              required />
+            <p>£ <span id="budgetValue"></span></p>
+          </div>
+
+          <div class="form-group">
+            <label for="clientValue">What's your average client value?</label>
+            <div class="input-group mt-3 mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">£</span>
+              </div>
+              <input
+                type="number"
+                id="clientValue"
+                class="form-control"
+                required />
+            </div>
+            <span
+              id="error-message"
+              style="color: red; font-size: small"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="salesCycle"
+              >How long is your average sales cycle?</label
+            >
+            <input
+              type="range"
+              min="1"
+              max="12"
+              value="3"
+              step="1"
+              id="salesCycle"
+              class="slider form-control mt-3 mb-3"
+              required />
+            <p><span id="salesCycleValue"></span> Month(s)</p>
+          </div>
+
+          <button onclick="calculateROI()" class="btn btn-primary mb-3 mt-2">
+            Calculate
+          </button>
+          <p id="result"></p>
+          <button
+            id="callButton"
+            style="display: none"
+            onclick="window.location.href='https://datagardener.com/discovery-call/'"
+            class="btn btn-success center">
+            Book a call
+          </button>
+        </div>
+
+        <div class="col-md-6 d-flex align-items-stretch">
+          <table class="table table-striped h-100">
+            <tbody>
+              <tr class="table-warning">
+                <td>Prospects</td>
+                <td
+                  id="prospects"
+                  style="font-weight: 700; font-size: 40px"></td>
+              </tr>
+              <tr class="table-primary">
+                <td>Leads</td>
+                <td id="leads" style="font-weight: 700; font-size: 40px"></td>
+              </tr>
+              <tr class="table-info">
+                <td>Proposals</td>
+                <td
+                  id="proposals"
+                  style="font-weight: 700; font-size: 40px"></td>
+              </tr>
+              <tr class="table-success">
+                <td>Closed Deals</td>
+                <td
+                  id="closedDeals"
+                  style="font-weight: 700; font-size: 40px"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var budgetSlider = document.getElementById("budget");
+      var budgetOutput = document.getElementById("budgetValue");
+      budgetOutput.innerHTML = budgetSlider.value;
+
+      budgetSlider.oninput = function () {
+        budgetOutput.innerHTML = this.value;
+        updateTable(this.value);
+      };
+
+      var salesCycleSlider = document.getElementById("salesCycle");
+      var salesCycleOutput = document.getElementById("salesCycleValue");
+      salesCycleOutput.innerHTML = salesCycleSlider.value;
+
+      salesCycleSlider.oninput = function () {
+        salesCycleOutput.innerHTML = this.value;
+      };
+
+      function calculateROI() {
+        var budget = parseInt(document.getElementById("budget").value);
+        var clientValue = parseInt(
+          document.getElementById("clientValue").value
+        );
+        var salesCycle = parseInt(document.getElementById("salesCycle").value);
+        var errorMessage = document.getElementById("error-message");
+
+        if (!clientValue) {
+          errorMessage.innerHTML = "Please fill your average client value";
+          return;
+        }
+
+        errorMessage.innerHTML = "";
+
+        var prospects = Math.round(budget + 100);
+        var closedDeals = Math.round(prospects * 0.006);
+        var result = Number(closedDeals * clientValue);
+
+        var totalInvestment = budget * salesCycle;
+
+        var message =
+          "Would you invest <b style='color:#04aa6d;'>" +
+          "£" +
+          totalInvestment +
+          "</b> to generate <b style='color:blue;'>" +
+          "£" +
+          result +
+          "</b> revenue each month?";
+
+        if (totalInvestment > result) {
+          message +=
+            "<br><span style='color:red; font-size:0.8em;'>It seems like your investment might be higher than the potential revenue. Please book a call so we can understand your requirements better.</span>";
+        }
+
+        document.getElementById("result").innerHTML = message;
+        updateTable(budget);
+
+        document.getElementById("callButton").style.display = "block";
+      }
+
+      function updateTable(budget) {
+        var prospects = Math.round(Number(budget) + 100);
+        var leads = Math.round(prospects * 0.06);
+        var proposals = Math.round(prospects * 0.03);
+        var closedDeals = Math.round(prospects * 0.006);
+
+        document.getElementById("prospects").innerHTML = prospects;
+        document.getElementById("leads").innerHTML = leads;
+        document.getElementById("proposals").innerHTML = proposals;
+        document.getElementById("closedDeals").innerHTML = closedDeals;
+      }
+
+      updateTable(budgetSlider.value);
+    </script>
+
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"></script>
+  </body>
+</html>
